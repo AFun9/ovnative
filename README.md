@@ -1,5 +1,7 @@
 # OVNative
 
+[English](README_EN.md) | 中文
+
 **OVNative** 是 OmniVoice 语音模型的本地推理引擎：C++17 从零实现，CPU 走 AVX2 /
 FMA / AVX-VNNI，GPU 走 CUDA + cuBLAS。运行时不链接 ONNX Runtime，也不链接
 libtorch；权重使用自定义的 `OVW1` 二进制格式，`mmap` 即加载。
@@ -140,6 +142,11 @@ tokenizer、C API、CUDA LM / encoder / decoder。当前 **10/10**。
 
 ## 文档
 
+- [README_EN.md](README_EN.md) — English README
+- [docs/architecture.en.md](docs/architecture.en.md) — English architecture
+- [docs/weight-format.en.md](docs/weight-format.en.md) — English OVW1 spec
+- [docs/performance.en.md](docs/performance.en.md) — English performance summary
+- [docs/project-origin.en.md](docs/project-origin.en.md) — English provenance
 - [docs/cpp-engine.md](docs/cpp-engine.md) — 引擎架构、kernel、移植说明
 - [docs/weight-format.md](docs/weight-format.md) — OVW1 二进制格式
 - [docs/perf-review.md](docs/perf-review.md) — 逐轮性能剖析与优化记录

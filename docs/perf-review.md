@@ -1,5 +1,7 @@
 # 性能评审：手写 CPU / CUDA 推理引擎
 
+[English summary](performance.en.md) | 中文完整版
+
 > 实测日期 2026-10-29，机器：i9-14900KF（8 P-core + 16 E-core / 32 线程，AVX2+FMA+AVX-VNNI）
 > + RTX 4090 (sm_89)，构建 `-DCMAKE_BUILD_TYPE=Release`（`-O3`）。
 > 除明确标注"推算/预期"的项外，所有数字都是本机实测；复现命令见 §7。

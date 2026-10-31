@@ -1,5 +1,7 @@
 # 项目来源、模型血缘与致谢
 
+[English](project-origin.en.md) | 中文
+
 ## 1. 这个项目是什么
 
 `OVNative` 是一个**独立的 native 推理引擎**，目标是在不链接 ONNX Runtime、不链接

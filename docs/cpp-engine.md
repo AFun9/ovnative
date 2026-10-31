@@ -1,5 +1,7 @@
 # C++ 引擎架构
 
+[English](architecture.en.md) | 中文
+
 目标：**零推理依赖**（不链接 ONNX Runtime、不链接 libtorch），权重来自 `OVW1`
 二进制文件（见 `weight-format.md`），CPU 与 CUDA 后端在目录层面隔离。
 

@@ -1,5 +1,7 @@
 # OVW1 — OmniVoice 纯二进制权重格式
 
+[English](weight-format.en.md) | 中文
+
 目标：**零依赖**（不需要 ONNX / PyTorch / protobuf / JSON 解析库），单文件自描述，
 `mmap` 直接映射后张量指针即权重指针，加载 3.2 GB 权重的时间 ≈ 一次 `mmap`。
 
