@@ -3,7 +3,7 @@
 #include <vector>
 #include "model/at_encoder.h"
 #include "model/audio_io.h"
-#include "omnivoice/ov_weights.h"
+#include "ovnative/ov_weights.h"
 namespace ov { void enc_report(double); }
 using namespace ov;
 int main(int argc, char** argv) {

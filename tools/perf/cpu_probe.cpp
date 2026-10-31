@@ -13,8 +13,8 @@
 #include "model/conv.h"
 #include "model/mat.h"
 #include "model/ops.h"
-#include "omnivoice/ov_gemm.h"
-#include "omnivoice/ov_weights.h"
+#include "ovnative/ov_gemm.h"
+#include "ovnative/ov_weights.h"
 
 using namespace ov;
 

@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 #include "model/audio_tokenizer.h"
-#include "omnivoice/ov_weights.h"
+#include "ovnative/ov_weights.h"
 namespace ov { void perf_report(double total); }
 using namespace ov;
 int main(int argc, char** argv) {
