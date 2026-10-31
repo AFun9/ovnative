@@ -1,0 +1,39 @@
+OVNative
+Copyright 2026 AFun9
+
+This product is an independent native inference engine. It is not affiliated with,
+endorsed by, or sponsored by k2-fsa, Boson AI, Alibaba Cloud, or the Qwen project.
+
+Third-party materials referenced by this project (model weights are NOT included):
+
+1. OmniVoice
+   - Upstream: https://github.com/k2-fsa/OmniVoice
+   - Code: Apache License 2.0
+   - Pre-trained model: CC-BY-NC (see the upstream model card)
+   - The OmniVoice name and marks belong to their respective owners.
+
+2. Boson Higgs Audio 2 (audio tokenizer)
+   - Upstream: https://github.com/boson-ai/boson-multimodal
+   - Licensed under the Boson Higgs Audio 2 Community License Agreement,
+     which incorporates the Meta Llama 3 Community License Agreement.
+   - Required notice for redistribution of Higgs Materials:
+     "Built with Higgs Materials licensed from Boson AI USA, Inc.,
+      Copyright Boson AI USA, Inc., All Rights Reserved and Meta Llama 3
+      licensed under the Meta Llama 3 Community License, Copyright Meta
+      Platforms, Inc., All Rights Reserved. based on Meta Llama 3"
+   - The full upstream license text is distributed with the OmniVoice
+     checkpoint at audio_tokenizer/LICENSE; it is not reproduced here because
+     this repository does not distribute Higgs Materials (model weights).
+
+3. Qwen3-0.6B
+   - Upstream: https://github.com/QwenLM/Qwen3
+   - The language-model backbone; model weights are not included here.
+   - See the upstream Qwen license for terms.
+
+4. ONNX Runtime and PyTorch
+   - Used only for offline export, validation and reference generation.
+   - They are NOT linked into the native runtime.
+
+No model weights, tokenizer JSON, or other upstream model artifacts are
+distributed in this repository. Obtain them from the upstream projects and
+comply with their licenses.

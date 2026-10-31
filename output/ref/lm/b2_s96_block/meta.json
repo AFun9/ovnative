@@ -1,0 +1,17 @@
+{
+  "batch": 2,
+  "seq": 96,
+  "text_len": 48,
+  "mask": "block",
+  "seed": 0,
+  "onnx": "/home/model/project/Ominivoice-Native/output/omnivoice_lm/model.onnx",
+  "provider": "CPUExecutionProvider",
+  "logits_shape": [
+    2,
+    8,
+    96,
+    1025
+  ],
+  "logits_max": 134.6896514892578,
+  "logits_mean": 69.53851318359375
+}

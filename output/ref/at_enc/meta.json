@@ -1,0 +1,54 @@
+{
+ "shapes": {
+  "input_24k": [
+   48000
+  ],
+  "ref_preprocessed": [
+   74880
+  ],
+  "input_16k": [
+   32000
+  ],
+  "hubert_padded": [
+   1,
+   32320
+  ],
+  "hubert_feature_extractor": [
+   512,
+   100
+  ],
+  "hubert_projection": [
+   100,
+   768
+  ],
+  "hubert_mean_hidden": [
+   100,
+   768
+  ],
+  "semantic_downsampled": [
+   50,
+   768
+  ],
+  "e_semantic": [
+   768,
+   50
+  ],
+  "acoustic_input": [
+   48000
+  ],
+  "e_acoustic": [
+   256,
+   50
+  ],
+  "embeddings": [
+   1024,
+   50
+  ],
+  "codes": [
+   8,
+   1,
+   50
+  ]
+ },
+ "seconds": 2.0
+}

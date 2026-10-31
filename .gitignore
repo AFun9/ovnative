@@ -1,0 +1,31 @@
+# build products
+cpp/build/
+build/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# model weights / large generated artifacts (never commit)
+OmniVoice/
+output/weights/
+output/omnivoice_lm*/
+output/audio_tokenizer_decoder*/
+output/audio_tokenizer_encoder*/
+output/inference_demo/
+output/test_outputs/
+output/results/
+logs/
+onnx/
+*.ovw
+*.safetensors
+*.onnx
+*.gguf
+*.wav.bak
+
+# local caches
+__pycache__/
+*.pyc
+.cache/
+.DS_Store
