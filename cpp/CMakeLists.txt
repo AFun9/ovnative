@@ -14,7 +14,7 @@ option(OV_ENABLE_CUDA   "Build the CUDA backend (see src/backend/cuda/README.md)
 
 if(MSVC)
   # MSVC does not define M_PI from <cmath> unless asked.
-  add_compile_definitions(_USE_MATH_DEFINES)
+  add_compile_definitions(_USE_MATH_DEFINES NOMINMAX _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # ---------------------------------------------------------------- core library
