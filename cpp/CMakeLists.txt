@@ -110,7 +110,7 @@ endif()
 # batch > 1 exercises the batched paths (score planes, arena sizing) that a
 # single-sequence reference cannot reach.
 set(OV_LM_B2 ${OV_REPO_ROOT}/output/ref/lm/b2_s256_block)
-if(EXISTS ${OV_LM_B2})
+if(EXISTS ${OV_LM_B2} AND EXISTS ${OV_LM_FP32})
   add_test(NAME lm_fp32_b2 COMMAND ov_test_lm ${OV_LM_FP32} ${OV_LM_B2})
 endif()
 set(OV_TOK ${OV_REPO_ROOT}/output/weights/tokenizer.ovt)

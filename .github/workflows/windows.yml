@@ -17,4 +17,4 @@ jobs:
       - name: Build
         run: cmake --build cpp/build --parallel
       - name: Test
-        run: ctest --test-dir cpp/build --output-on-failure
+        run: ctest --test-dir cpp/build --output-on-failure -V

@@ -395,6 +395,7 @@ bool test_attention_masked() {
 }  // namespace
 
 int main() {
+  std::setvbuf(stdout, nullptr, _IONBF, 0);
   std::mt19937 rng(1234);
   std::printf("kernel: %s\n", ov::cpu_kernel_name());
   bool ok = true;
