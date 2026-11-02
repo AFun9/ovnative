@@ -63,6 +63,7 @@ C++/CUDA 引擎。ONNX Runtime 与 PyTorch 只用于离线导出、数值对齐�
 ├── tools/                     权重转换、tokenizer 编译、参考数据与性能探针
 ├── docs/                      架构、权重格式、性能评审、项目来源
 ├── assets/                    voice-clone 参考音频
+├── web/                       本地 Web UI（由 ovweb 服务）
 └── output/ref/                数值测试参考数据（不含模型权重）
 ```
 
@@ -162,6 +163,22 @@ ctest --test-dir cpp/build --output-on-failure
 
 测试覆盖：int8/fp32 GEMM、VNNI tile、attention 边界、LM 数值门禁、AT 解码/编码、
 tokenizer、C API、CUDA LM / encoder / decoder。当前 **10/10**。
+
+## Web UI
+
+本地网页端，不用装 Node/Python，静态页面由 `ovweb` 直接服务：
+
+```bash
+./cpp/build/ovweb output/weights/omnivoice-lm-int8.ovw \
+  output/weights/omnivoice-at-fp32.ovw output/weights/tokenizer.ovt \
+  --backend cuda --port 8080
+# 打开 http://127.0.0.1:8080
+```
+
+支持文本、语言、步数/CFG/seed、voice-design instruct，以及上传 WAV 参考音频做
+voice clone。API 是 `POST /api/tts`（form-urlencoded，返回 WAV）和
+`POST /api/ref`（raw WAV），详见 [web/README.md](web/README.md)。
+服务默认只绑定 `127.0.0.1`，没有鉴权，不要直接暴露到公网。
 
 ## 文档
 

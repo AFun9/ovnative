@@ -72,6 +72,7 @@ Model weights are not redistributed here.
 ├── tools/                     weight conversion, tokenizer, reference data, probes
 ├── docs/                      architecture, weight format, performance, provenance
 ├── assets/                    voice-clone reference audio
+├── web/                       local web UI (served by ovweb)
 └── output/ref/                numerical test references (no model weights)
 ```
 
@@ -175,6 +176,23 @@ ctest --test-dir cpp/build --output-on-failure
 Coverage: int8/fp32 GEMM, VNNI tiles, attention boundaries, LM numerical gates,
 AT decode/encode, tokenizer, C API, CUDA LM / encoder / decoder. The current
 suite is **10/10** when weights are present.
+
+## Web UI
+
+A small local web frontend is served by `ovweb`; no Node/Python stack needed:
+
+```bash
+./cpp/build/ovweb output/weights/omnivoice-lm-int8.ovw \
+  output/weights/omnivoice-at-fp32.ovw output/weights/tokenizer.ovt \
+  --backend cuda --port 8080
+# open http://127.0.0.1:8080
+```
+
+It supports text, language, steps/CFG/seed, voice-design instruct, and WAV
+reference upload for voice cloning. The API is `POST /api/tts`
+(form-urlencoded, returns WAV) and `POST /api/ref` (raw WAV); see
+[web/README.md](web/README.md). The server binds to `127.0.0.1` by default and
+has no authentication — do not expose it to the public internet.
 
 ## Documentation
 

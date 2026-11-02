@@ -76,6 +76,12 @@ if(WIN32)
   target_link_libraries(ovtts PRIVATE shell32)  # CommandLineToArgvW
 endif()
 
+add_executable(ovweb tools/ovweb.cpp)
+target_link_libraries(ovweb PRIVATE ovcore)
+if(WIN32)
+  target_link_libraries(ovweb PRIVATE shell32 ws2_32)
+endif()
+
 # ----------------------------------------------------------------------- tests
 enable_testing()
 add_executable(ov_test_gemm tests/test_gemm.cpp)
@@ -135,6 +141,8 @@ if(OV_ENABLE_CUDA)
   # Let the CLI / tests use the accelerator without making ovcore depend on CUDA.
   target_compile_definitions(ovtts PRIVATE OV_ENABLE_CUDA=1)
   target_link_libraries(ovtts PRIVATE ovcuda)
+  target_compile_definitions(ovweb PRIVATE OV_ENABLE_CUDA=1)
+  target_link_libraries(ovweb PRIVATE ovcuda)
   target_compile_definitions(ov_test_lm PRIVATE OV_ENABLE_CUDA=1)
   target_link_libraries(ov_test_lm PRIVATE ovcuda)
   if(EXISTS ${OV_LM_FP32})
