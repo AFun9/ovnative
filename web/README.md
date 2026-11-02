@@ -9,7 +9,8 @@ A tiny, dependency-free local web frontend for the native engine.
   --backend cuda --port 8080
 ```
 
-Open <http://127.0.0.1:8080>.
+Open <http://127.0.0.1:8080>. The UI follows the browser language and has a
+`中文 / English` switch in the top-right corner.
 
 ## Endpoints
 

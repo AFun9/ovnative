@@ -176,7 +176,7 @@ tokenizer、C API、CUDA LM / encoder / decoder。当前 **10/10**。
 ```
 
 支持文本、语言、步数/CFG/seed、voice-design instruct，以及上传 WAV 参考音频做
-voice clone。API 是 `POST /api/tts`（form-urlencoded，返回 WAV）和
+voice clone；界面自带 **中文 / English** 切换，默认跟随浏览器语言。API 是 `POST /api/tts`（form-urlencoded，返回 WAV）和
 `POST /api/ref`（raw WAV），详见 [web/README.md](web/README.md)。
 服务默认只绑定 `127.0.0.1`，没有鉴权，不要直接暴露到公网。
 

@@ -189,7 +189,8 @@ A small local web frontend is served by `ovweb`; no Node/Python stack needed:
 ```
 
 It supports text, language, steps/CFG/seed, voice-design instruct, and WAV
-reference upload for voice cloning. The API is `POST /api/tts`
+reference upload for voice cloning. The UI has a **中文 / English** switch and
+follows the browser language on first load. The API is `POST /api/tts`
 (form-urlencoded, returns WAV) and `POST /api/ref` (raw WAV); see
 [web/README.md](web/README.md). The server binds to `127.0.0.1` by default and
 has no authentication — do not expose it to the public internet.
