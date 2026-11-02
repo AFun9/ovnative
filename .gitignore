@@ -9,7 +9,7 @@ build/
 
 # model weights / large generated artifacts (never commit)
 OmniVoice/
-output/weights/
+output/weights
 output/omnivoice_lm*/
 output/audio_tokenizer_decoder*/
 output/audio_tokenizer_encoder*/
