@@ -1,5 +1,7 @@
 # OVNative
 
+[![windows-build](https://github.com/AFun9/ovnative/actions/workflows/windows.yml/badge.svg)](https://github.com/AFun9/ovnative/actions/workflows/windows.yml)
+
 [English](README_EN.md) | 中文
 
 **OVNative** 是 OmniVoice 语音模型的本地推理引擎：C++17 从零实现，CPU 走 AVX2 /

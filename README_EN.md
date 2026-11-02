@@ -1,5 +1,7 @@
 # OVNative
 
+[![windows-build](https://github.com/AFun9/ovnative/actions/workflows/windows.yml/badge.svg)](https://github.com/AFun9/ovnative/actions/workflows/windows.yml)
+
 **OVNative** is a local inference engine for the OmniVoice speech model, written
 from scratch in C++17. The CPU path uses AVX2 / FMA / AVX-VNNI; the optional GPU
 path uses CUDA + cuBLAS. The runtime does **not** link ONNX Runtime and does
