@@ -6,11 +6,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <random>
 #include <vector>
 
 #include "model/ops.h"
 #include "ovnative/ov_gemm.h"
+#include "ovnative/ov_weights.h"
 
 namespace {
 
@@ -348,6 +350,61 @@ bool test_norm_quant_fused(int64_t M, int64_t K, std::mt19937& rng) {
   return same;
 }
 
+
+// Minimal OVW1 file: header (128 B) + one descriptor + name + 4 floats. This
+// exercises the mmap/CreateFileMapping path on every platform, including
+// Windows, where it is otherwise only used by full model weights.
+bool test_weight_file() {
+  const auto path = (std::filesystem::temp_directory_path() / "ovnative_ovw1_test.bin").string();
+  std::vector<uint8_t> b(272, 0);
+  auto put32 = [&](size_t off, uint32_t v) { std::memcpy(b.data() + off, &v, 4); };
+  auto put64 = [&](size_t off, uint64_t v) { std::memcpy(b.data() + off, &v, 8); };
+  std::memcpy(b.data(), "OMNIVOIC", 8);
+  put32(8, 1);      // version
+  put32(12, 0);     // dtype_mode
+  put32(16, 1);     // n_tensors
+  put32(20, 128);   // header_bytes
+  put64(24, 128);   // index_off
+  put64(32, 192);   // names_off
+  put64(40, 256);   // data_off
+  put64(48, 272);   // file_size
+  put64(56, 0);     // flags
+  put64(64, 4);     // n_params
+  // descriptor at 128
+  put32(128, 0);    // name_off
+  put32(132, 1);    // name_len
+  b[136] = 0;       // FP32
+  b[137] = 2;       // ndim
+  b[138] = 0;       // layout
+  b[139] = 0;       // quant
+  put32(140, 2);    // dims[0]
+  put32(144, 2);    // dims[1]
+  put64(160, 0);    // hash
+  put64(168, 256);  // data_off
+  put64(176, 16);   // nbytes
+  put64(184, 0);    // aux_off
+  b[192] = 'x';
+  const float vals[4] = {1.f, 2.f, 3.f, 4.f};
+  std::memcpy(b.data() + 256, vals, sizeof(vals));
+  std::FILE* f = std::fopen(path.c_str(), "wb");
+  if (!f) return false;
+  const size_t wrote = std::fwrite(b.data(), 1, b.size(), f);
+  std::fclose(f);
+  bool ok = wrote == b.size();
+  try {
+    ov::WeightFile wf = ov::WeightFile::Open(path);
+    const ov::Tensor& t = wf.Get("x");
+    ok = ok && t.shape.ndim == 2 && t.shape.dims[0] == 2 && t.shape.dims[1] == 2;
+    ok = ok && t.nbytes == 16 && t.f32()[0] == 1.f && t.f32()[3] == 4.f;
+  } catch (const std::exception& e) {
+    std::fprintf(stderr, "weight-file test: %s\n", e.what());
+    ok = false;
+  }
+  std::remove(path.c_str());
+  std::printf("  %-34s %s\n", "ovw1 mmap", ok ? "OK" : "FAIL");
+  return ok;
+}
+
 // Fused per-head RMSNorm+RoPE must byte-match the four separate passes.
 bool test_qk_norm_rope(std::mt19937& rng) {
   const int T = 7, NH = 4, NKV = 2, D = 128;
@@ -444,6 +501,7 @@ int main() {
   ok &= test_norm_quant_fused(8, 1024, rng);
   ok &= test_qk_norm_rope(rng);
   ok &= test_attention_masked();
+  ok &= test_weight_file();
 
   std::printf("%s\n", ok ? "ALL GEMM TESTS PASSED" : "GEMM TESTS FAILED");
   return ok ? 0 : 1;
