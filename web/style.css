@@ -126,3 +126,12 @@ audio { width: 100%; filter: invert(.88) hue-rotate(180deg); }
   .row.two, .row.three { grid-template-columns: 1fr; }
   .hint { margin-left: 0; width: 100%; }
 }
+
+.hero-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+.lang-toggle {
+  border: 1px solid var(--line); border-radius: 999px; background: rgba(15, 23, 42, .72);
+  color: var(--accent); width: 42px; height: 36px; font: 700 11px/1 ui-monospace, monospace;
+  cursor: pointer; transition: border-color .18s, color .18s;
+}
+.lang-toggle:hover { border-color: var(--accent); color: #e0f2fe; }
+@media (max-width: 900px) { .hero-actions { justify-content: flex-start; } }

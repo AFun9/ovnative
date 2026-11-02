@@ -11,25 +11,28 @@
     <header class="hero">
       <div>
         <p class="eyebrow">OVNATIVE / LOCAL INFERENCE</p>
-        <h1>把文字，变成声音。</h1>
-        <p class="lede">OmniVoice 的 C++17 / CUDA 本地推理引擎。没有云端请求，没有 ONNX Runtime，没有 libtorch。</p>
+        <h1 data-i18n="heroTitle">把文字，变成声音。</h1>
+        <p class="lede" data-i18n="heroLede">OmniVoice 的 C++17 / CUDA 本地推理引擎。没有云端请求，没有 ONNX Runtime，没有 libtorch。</p>
       </div>
-      <div class="status" id="status">
-        <span class="dot"></span>
-        <span id="status-text">正在连接本地引擎…</span>
+      <div class="hero-actions">
+        <div class="status" id="status">
+          <span class="dot"></span>
+          <span id="status-text" data-i18n="statusConnecting">正在连接本地引擎…</span>
+        </div>
+        <button id="lang-toggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
       </div>
     </header>
 
     <section class="grid">
       <form class="card form" id="form">
         <label class="field">
-          <span>要说的文字</span>
+          <span data-i18n="textLabel">要说的文字</span>
           <textarea id="text" rows="5" maxlength="5000" spellcheck="false">今天天气不错，我们一起去爬爬山吧</textarea>
         </label>
 
         <div class="row three">
           <label class="field">
-            <span>语言</span>
+            <span data-i18n="languageLabel">语言</span>
             <select id="language">
               <option value="Chinese" selected>中文</option>
               <option value="English">English</option>
@@ -39,60 +42,60 @@
               <option value="French">Français</option>
               <option value="Spanish">Español</option>
               <option value="Russian">Русский</option>
-              <option value="">Auto</option>
+              <option value="" data-i18n="autoOption">Auto</option>
             </select>
           </label>
           <label class="field">
-            <span>步数</span>
+            <span data-i18n="stepsLabel">步数</span>
             <input id="steps" type="number" min="1" max="200" value="32">
           </label>
           <label class="field">
-            <span>Seed</span>
+            <span data-i18n="seedLabel">Seed</span>
             <input id="seed" type="number" min="0" value="1234">
           </label>
         </div>
 
         <div class="row two">
           <label class="field">
-            <span>CFG</span>
+            <span data-i18n="cfgLabel">CFG</span>
             <input id="cfg" type="number" min="0" max="10" step="0.1" value="2.0">
           </label>
           <label class="field">
-            <span>音色 / 风格（可选）</span>
-            <input id="instruct" type="text" placeholder="male, british accent">
+            <span data-i18n="instructLabel">音色 / 风格（可选）</span>
+            <input id="instruct" type="text" data-i18n-ph="instructPlaceholder" placeholder="male, british accent">
           </label>
         </div>
 
         <details class="advanced">
-          <summary>Voice clone（参考音频）</summary>
+          <summary data-i18n="advancedSummary">Voice clone（参考音频）</summary>
           <div class="refbox">
             <label class="drop" id="drop">
               <input id="ref-file" type="file" accept="audio/wav,audio/x-wav,audio/*">
-              <span class="drop-title">拖入或选择一段 WAV 参考音频</span>
-              <span class="drop-sub" id="ref-status">24 kHz / 单声道最好；会自动做静音裁剪与 RMS 归一化</span>
+              <span class="drop-title" data-i18n="dropTitle">拖入或选择一段 WAV 参考音频</span>
+              <span class="drop-sub" id="ref-status" data-i18n="dropSub">24 kHz / 单声道最好；会自动做静音裁剪与 RMS 归一化</span>
             </label>
             <label class="field">
-              <span>参考音频转写（可选，但推荐）</span>
-              <input id="ref-text" type="text" placeholder="希望你以后过的比我还好哟！">
+              <span data-i18n="refTextLabel">参考音频转写（可选，但推荐）</span>
+              <input id="ref-text" type="text" data-i18n-ph="refTextPlaceholder" placeholder="希望你以后过的比我还好哟！">
             </label>
           </div>
         </details>
 
         <div class="actions">
           <button id="generate" type="submit">
-            <span class="btn-label">生成语音</span>
+            <span class="btn-label" data-i18n="generate">生成语音</span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
-          <button id="clear" type="button" class="ghost">清空</button>
-          <span class="hint" id="hint">首次生成会加载权重，之后是秒级。</span>
+          <button id="clear" type="button" class="ghost" data-i18n="clear">清空</button>
+          <span class="hint" id="hint" data-i18n="hint">首次生成会加载权重，之后是秒级。</span>
         </div>
       </form>
 
       <section class="card player">
         <div class="player-head">
           <div>
-            <p class="eyebrow">OUTPUT</p>
-            <h2>生成结果</h2>
+            <p class="eyebrow" data-i18n="outputEyebrow">OUTPUT</p>
+            <h2 data-i18n="outputTitle">生成结果</h2>
           </div>
           <span class="badge" id="backend-badge">—</span>
         </div>
@@ -106,19 +109,19 @@
         <audio id="audio" controls preload="metadata"></audio>
 
         <div class="stats">
-          <div><span>时长</span><strong id="stat-duration">—</strong></div>
-          <div><span>生成耗时</span><strong id="stat-time">—</strong></div>
-          <div><span>RTF</span><strong id="stat-rtf">—</strong></div>
+          <div><span data-i18n="statDuration">时长</span><strong id="stat-duration">—</strong></div>
+          <div><span data-i18n="statTime">生成耗时</span><strong id="stat-time">—</strong></div>
+          <div><span data-i18n="statRtf">RTF</span><strong id="stat-rtf">—</strong></div>
         </div>
 
-        <a id="download" class="download disabled" download="ovnative.wav">下载 WAV</a>
-        <p class="empty" id="empty">还没有生成。左边写好句子，点“生成语音”。</p>
+        <a id="download" class="download disabled" download="ovnative.wav" data-i18n="download">下载 WAV</a>
+        <p class="empty" id="empty" data-i18n="empty">还没有生成。左边写好句子，点“生成语音”。</p>
       </section>
     </section>
 
     <footer class="foot">
-      <span>OVNative · native TTS runtime</span>
-      <span>所有计算都在本机完成 · <a href="https://github.com/AFun9/ovnative" target="_blank" rel="noreferrer">GitHub</a></span>
+      <span data-i18n="footerLeft">OVNative · native TTS runtime</span>
+      <span><span data-i18n="footerRight">所有计算都在本机完成</span> · <a href="https://github.com/AFun9/ovnative" target="_blank" rel="noreferrer">GitHub</a></span>
     </footer>
   </main>
   <script src="/app.js"></script>
