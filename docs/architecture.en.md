@@ -147,5 +147,17 @@ the C++ binary is self-contained at runtime.
   the batched path has no such constraint.
 - The C ABI is versioned (`OV_ABI_VERSION`) and does not expose C++ types.
 
+## Windows notes
+
+- MSVC builds `gemm.cpp` / `ops_cpu.cpp` with `/arch:AVX2` and disables the
+  AVX-VNNI block (MSVC has no GNU-style function target attributes). The CPU
+  path therefore uses the AVX2/legacy int8 GEMM; CUDA is unaffected.
+- `.ovw` files are mapped with `CreateFileW` + `CreateFileMappingW` +
+  `MapViewOfFile`; paths are converted from UTF-8 to UTF-16.
+- `ovtts` rebuilds `argv` from `GetCommandLineW` so Chinese text and paths are
+  not mangled by the ANSI code page.
+- The CUDA build requires VS2022 + CUDA Toolkit; see the Windows section in the
+  README.
+
 For the complete Chinese design notes, kernel inventory and porting checklist,
 see [cpp-engine.md](cpp-engine.md).

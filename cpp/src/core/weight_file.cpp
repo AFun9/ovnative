@@ -1,13 +1,19 @@
 #include "ovnative/ov_weights.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
+
+#include "core/utf8.h"
 
 namespace ov {
 namespace {
@@ -74,7 +80,15 @@ WeightFile::~WeightFile() { Release(); }
 
 void WeightFile::Release() {
   if (base_) {
+#ifdef _WIN32
+    ::UnmapViewOfFile(base_);
+    if (map_) {
+      ::CloseHandle(static_cast<HANDLE>(map_));
+      map_ = nullptr;
+    }
+#else
     ::munmap(base_, size_);
+#endif
     base_ = nullptr;
     size_ = 0;
   }
@@ -89,6 +103,7 @@ WeightFile& WeightFile::operator=(WeightFile&& other) noexcept {
   if (this != &other) {
     Release();
     base_ = other.base_;
+    map_ = other.map_;
     size_ = other.size_;
     path_ = std::move(other.path_);
     n_params_ = other.n_params_;
@@ -97,12 +112,40 @@ WeightFile& WeightFile::operator=(WeightFile&& other) noexcept {
     crc_ = std::move(other.crc_);
     index_ = std::move(other.index_);
     other.base_ = nullptr;
+    other.map_ = nullptr;
     other.size_ = 0;
   }
   return *this;
 }
 
 WeightFile WeightFile::Open(const std::string& path) {
+#ifdef _WIN32
+  const std::wstring wpath = utf8_to_wide(path);
+  HANDLE file = ::CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (file == INVALID_HANDLE_VALUE) fail("cannot open '" + path + "'");
+  LARGE_INTEGER li{};
+  if (!::GetFileSizeEx(file, &li)) {
+    ::CloseHandle(file);
+    fail("cannot stat '" + path + "'");
+  }
+  const size_t size = static_cast<size_t>(li.QuadPart);
+  if (size < sizeof(RawHeader)) {
+    ::CloseHandle(file);
+    fail("'" + path + "' is smaller than a header");
+  }
+  HANDLE map = ::CreateFileMappingW(file, nullptr, PAGE_READONLY, 0, 0, nullptr);
+  if (!map) {
+    ::CloseHandle(file);
+    fail("cannot map '" + path + "'");
+  }
+  void* base = ::MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
+  ::CloseHandle(file);
+  if (!base) {
+    ::CloseHandle(map);
+    fail("MapViewOfFile failed for '" + path + "'");
+  }
+#else
   int fd = ::open(path.c_str(), O_RDONLY);
   if (fd < 0) fail("cannot open '" + path + "': " + std::strerror(errno));
 
@@ -120,9 +163,13 @@ WeightFile WeightFile::Open(const std::string& path) {
   void* base = ::mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
   ::close(fd);
   if (base == MAP_FAILED) fail("mmap failed for '" + path + "'");
+#endif
 
   WeightFile wf;
   wf.base_ = base;
+#ifdef _WIN32
+  wf.map_ = map;
+#endif
   wf.size_ = size;
   wf.path_ = path;
 

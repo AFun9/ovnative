@@ -79,6 +79,22 @@ cmake --build cpp/build -j
 要求：CMake ≥ 3.16、C++17；CUDA 构建需要 CUDA Toolkit（cuBLAS）。CPU 构建不依赖
 CUDA；GPU 构建也不依赖 PyTorch/ONNX Runtime。
 
+### Windows（MSVC / Visual Studio 2022）
+
+```powershell
+cmake -S cpp -B cpp/build -G "Visual Studio 17 2022" -A x64 `
+      -DOV_ENABLE_CUDA=ON
+cmake --build cpp/build --config Release -j
+ctest --test-dir cpp/build -C Release --output-on-failure
+```
+
+- 需要 Visual Studio 2022（MSVC）和 CUDA Toolkit 12.x；CUDA 构建会自动找 cuBLAS。
+- MSVC 下 CPU kernel 以 `/arch:AVX2` 编译，**不启用 AVX-VNNI**；CPU 推理仍可用
+  `int8-nk`，CUDA 用 `int8`（`[K,N]`）文件。
+- 命令行文本和文件路径按 UTF-8 处理（`GetCommandLineW` + `CreateFileW/_wfopen`），
+  中文文本、中文路径不需要额外转码。
+- 没有 CUDA 时去掉 `-DOV_ENABLE_CUDA=ON`，只构建 CPU。
+
 ## 权重（不在本仓库）
 
 先按上游说明获取 OmniVoice 权重，得到一个目录：

@@ -88,6 +88,22 @@ cmake --build cpp/build -j
 Requirements: CMake ≥ 3.16 and a C++17 compiler. The CUDA build additionally
 needs the CUDA Toolkit (cuBLAS). Neither build needs PyTorch or ONNX Runtime.
 
+### Windows (MSVC / Visual Studio 2022)
+
+```powershell
+cmake -S cpp -B cpp/build -G "Visual Studio 17 2022" -A x64 `
+      -DOV_ENABLE_CUDA=ON
+cmake --build cpp/build --config Release -j
+ctest --test-dir cpp/build -C Release --output-on-failure
+```
+
+- Visual Studio 2022 (MSVC) and CUDA Toolkit 12.x are required for the CUDA build.
+- The MSVC CPU kernels are compiled with `/arch:AVX2`; **AVX-VNNI is disabled**.
+  Use the `int8-nk` file on CPU and the `int8` (`[K,N]`) file on CUDA.
+- Command-line text and file paths are UTF-8 (`GetCommandLineW` +
+  `CreateFileW/_wfopen`), so Chinese text and paths work without code-page hacks.
+- Drop `-DOV_ENABLE_CUDA=ON` for a CPU-only build.
+
 ## Weights (not in this repository)
 
 Follow the upstream instructions to obtain an OmniVoice checkpoint:

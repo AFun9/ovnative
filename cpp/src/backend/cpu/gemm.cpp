@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <vector>
 
-#if defined(__x86_64__) || defined(__i386__)
+#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
 #include <immintrin.h>
 #define OV_X86 1
 #endif
@@ -48,8 +48,15 @@ void linear_s8_ref(int64_t M, int64_t N, int64_t K, const float* A, const int8_t
 //     W panel had to be re-read once per 4 rows and the kernel became L3
 //     bandwidth bound: 190 GFLOPS on down_proj vs ~380 after the change.
 #ifdef OV_X86
+#ifdef _MSC_VER
+// MSVC has no function-level target attributes. gemm.cpp / ops_cpu.cpp are
+// compiled with /arch:AVX2, and the VNNI block below is disabled on MSVC.
+#define OV_AVX2
+#define OV_VNNI
+#else
 #define OV_AVX2 __attribute__((target("avx2,fma")))
 #define OV_VNNI __attribute__((target("avx2,fma,avxvnni")))
+#endif
 
 constexpr int64_t kJb = 64;  // columns per W panel
 constexpr int64_t kMr = 8;   // rows per micro-kernel
@@ -362,6 +369,7 @@ OV_AVX2 void linear_s8_avx2(int64_t M, int64_t N, int64_t K, const float* A, con
 // block is deliberate: with 8 rows the 8 int32 + 8 float accumulators spill,
 // and the extra C read-modify-write per block measured ~35% slower.
 
+#if !defined(_MSC_VER)
 OV_VNNI inline __m256i bcast4_u8(const uint8_t* p) {
   uint32_t v;
   std::memcpy(&v, p, 4);
@@ -528,11 +536,14 @@ OV_VNNI void linear_s8_nk_vnni(int64_t M, int64_t N, int64_t K, int64_t Kb, int6
     for (int64_t ib = 0; ib < iblocks; ++ib) run(jb, ib);
   }
 }
+#endif  // !_MSC_VER (AVX-VNNI block)
 
 #endif  // OV_X86
 
 bool avx2_available() {
-#ifdef OV_X86
+#if defined(OV_X86) && defined(_MSC_VER)
+  return true;  // this translation unit is compiled with /arch:AVX2
+#elif defined(OV_X86)
   static const bool ok = __builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma");
   return ok;
 #else
@@ -543,7 +554,9 @@ bool avx2_available() {
 }  // namespace
 
 bool cpu_vnni_available() {
-#ifdef OV_X86
+#ifdef _MSC_VER
+  return false;  // AVX-VNNI is disabled in the MSVC build
+#elif defined(OV_X86)
   static const bool ok = [] {
     if (!__builtin_cpu_supports("avx2") || !__builtin_cpu_supports("fma") ||
         !__builtin_cpu_supports("avxvnni")) {
@@ -695,7 +708,7 @@ OV_AVX2 void rmsnorm_quantize_avx2(int64_t rows, int64_t cols, const float* x, c
 
 void s8_nk_quantize(int64_t M, int64_t K, const float* A, uint8_t* aq, float* asc) {
   if (M <= 0 || K <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (!cpu_vnni_available()) throw std::runtime_error("s8_nk_quantize: AVX-VNNI is not available");
   const int64_t Kb = (K + 31) / 32;
   quantize_a_u8(M, K, Kb, Kb * 32, A, aq, asc);
@@ -710,7 +723,7 @@ void rmsnorm_quantize_f32(int64_t rows, int64_t cols, const float* x, const floa
                           uint8_t* aq, float* asc) {
   if (rows <= 0 || cols <= 0) return;
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) {
+  if (avx2_available()) {
     rmsnorm_quantize_avx2(rows, cols, x, w, eps, aq, asc);
     return;
   }
@@ -746,7 +759,7 @@ void linear_s8_nk_packed_q(int64_t M, int64_t N, int64_t K, const uint8_t* aq, c
                            const int8_t* packed, const int32_t* wsum, const float* row_scale,
                            float* C) {
   if (M <= 0 || N <= 0 || K <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (!cpu_vnni_available()) {
     throw std::runtime_error("linear_s8_nk_packed_q: AVX-VNNI is not available");
   }
@@ -764,7 +777,7 @@ void linear_s8_nk_packed_q_sliced(int64_t M, int64_t K, const uint8_t* aq, const
                                   const int8_t* packed, const int32_t* wsum,
                                   const float* scale, const S8NkSlice* slices, int n_slices) {
   if (M <= 0 || K <= 0 || n_slices <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (!cpu_vnni_available()) {
     throw std::runtime_error("linear_s8_nk_packed_q_sliced: AVX-VNNI is not available");
   }
@@ -817,7 +830,7 @@ void linear_s8_nk_packed(int64_t M, int64_t N, int64_t K, const float* A,
                          const int8_t* packed, const int32_t* wsum, const float* row_scale,
                          float* C) {
   if (M <= 0 || N <= 0 || K <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (cpu_vnni_available()) {
     static thread_local std::vector<uint8_t> aq;
     static thread_local std::vector<float> asc;
@@ -835,7 +848,7 @@ void linear_s8_nk_packed_q_add(int64_t M, int64_t N, int64_t K, const uint8_t* a
                                const float* asc, const int8_t* packed, const int32_t* wsum,
                                const float* row_scale, float* C) {
   if (M <= 0 || N <= 0 || K <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (!cpu_vnni_available()) {
     throw std::runtime_error("linear_s8_nk_packed_q_add: AVX-VNNI is not available");
   }
@@ -852,7 +865,7 @@ void linear_s8_nk_packed_add(int64_t M, int64_t N, int64_t K, const float* A,
                              const int8_t* packed, const int32_t* wsum, const float* row_scale,
                              float* C) {
   if (M <= 0 || N <= 0 || K <= 0) return;
-#ifdef OV_X86
+#if defined(OV_X86) && !defined(_MSC_VER)
   if (cpu_vnni_available()) {
     static thread_local std::vector<uint8_t> aq;
     static thread_local std::vector<float> asc;

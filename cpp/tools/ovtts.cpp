@@ -12,6 +12,12 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
+#include "core/utf8.h"
 #include "core/wav.h"
 #include "model/audio_io.h"
 #ifdef OV_ENABLE_CUDA
@@ -24,6 +30,31 @@
 #include "ovnative/ov_weights.h"
 
 int main(int argc, char** argv) {
+#ifdef _WIN32
+  // The CRT hands `main` ANSI/ACP strings; OVNative's tokenizer expects UTF-8.
+  // Rebuild argv from the wide command line (covers Chinese text and paths).
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
+  int wargc = 0;
+  LPWSTR* wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+  std::vector<std::string> utf8_args;
+  std::vector<char*> utf8_argv;
+  if (wargv) {
+    utf8_args.reserve(static_cast<size_t>(wargc));
+    for (int i = 0; i < wargc; ++i) {
+      const int n = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, nullptr, 0, nullptr, nullptr);
+      std::string a(n > 0 ? static_cast<size_t>(n) : 0, '\0');
+      if (n > 0) WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, a.data(), n, nullptr, nullptr);
+      if (n > 0) a.resize(static_cast<size_t>(n - 1));
+      utf8_args.push_back(std::move(a));
+    }
+    LocalFree(wargv);
+    utf8_argv.reserve(utf8_args.size());
+    for (auto& a : utf8_args) utf8_argv.push_back(a.data());
+    argc = wargc;
+    argv = utf8_argv.data();
+  }
+#endif
   if (argc < 6) {
     std::fprintf(stderr,
                  "usage: ovtts <lm.ovw> <at.ovw> <tokenizer.ovt> \"<text>\" <out.wav>\n"
@@ -143,7 +174,7 @@ int main(int argc, char** argv) {
     const auto t3 = std::chrono::steady_clock::now();
 
     if (!codes_out.empty()) {
-      std::FILE* f = std::fopen(codes_out.c_str(), "wb");
+      std::FILE* f = ov::fopen_utf8(codes_out, "wb");
       if (f) {
         std::fwrite(codes.data(), sizeof(int64_t), codes.size(), f);
         std::fclose(f);

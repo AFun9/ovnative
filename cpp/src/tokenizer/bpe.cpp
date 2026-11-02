@@ -1,10 +1,12 @@
 #include "tokenizer/bpe.h"
 
+#include "core/utf8.h"
+
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <cmath>
 #include <cstring>
-#include <fstream>
 #include <stdexcept>
 
 namespace ov {
@@ -105,9 +107,18 @@ uint8_t Tokenizer::category_class(uint32_t cp) const {
 }
 
 Tokenizer::Tokenizer(const std::string& ovt_path) {
-  std::ifstream f(ovt_path, std::ios::binary);
+  std::FILE* f = fopen_utf8(ovt_path, "rb");
   if (!f) throw std::runtime_error("cannot open tokenizer file: " + ovt_path);
-  blob_.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
+  std::fseek(f, 0, SEEK_END);
+  const long n = std::ftell(f);
+  std::fseek(f, 0, SEEK_SET);
+  if (n < 0) { std::fclose(f); throw std::runtime_error("cannot stat tokenizer file: " + ovt_path); }
+  blob_.resize(static_cast<size_t>(n));
+  if (n > 0 && std::fread(blob_.data(), 1, static_cast<size_t>(n), f) != static_cast<size_t>(n)) {
+    std::fclose(f);
+    throw std::runtime_error("cannot read tokenizer file: " + ovt_path);
+  }
+  std::fclose(f);
   if (blob_.size() < 16) throw std::runtime_error("tokenizer file too small");
   if (std::memcmp(blob_.data(), kMagic, 8) != 0) throw std::runtime_error("not an OVTOK1 file");
   const uint32_t version = rd_u32(blob_.data() + 8);

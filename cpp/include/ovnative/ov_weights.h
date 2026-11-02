@@ -47,6 +47,7 @@ class WeightFile {
   void Release();
 
   void* base_ = nullptr;
+  void* map_ = nullptr;  // Windows file-mapping handle
   size_t size_ = 0;
   std::string path_;
   uint64_t n_params_ = 0;

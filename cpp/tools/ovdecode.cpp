@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "core/utf8.h"
 #include "model/audio_tokenizer.h"
 #include "ovnative/ov_weights.h"
 
@@ -20,7 +21,7 @@ void write_u32(std::FILE* f, uint32_t v) { std::fwrite(&v, 4, 1, f); }
 void write_u16(std::FILE* f, uint16_t v) { std::fwrite(&v, 2, 1, f); }
 
 bool write_wav(const std::string& path, const float* pcm, size_t n, int sample_rate) {
-  std::FILE* f = std::fopen(path.c_str(), "wb");
+  std::FILE* f = ov::fopen_utf8(path, "wb");
   if (!f) return false;
   const uint32_t data_bytes = static_cast<uint32_t>(n * 2);
   std::fwrite("RIFF", 1, 4, f);
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
   }
 
   std::vector<int64_t> codes(static_cast<size_t>(frames) * 8);
-  std::FILE* f = std::fopen(codes_path.c_str(), "rb");
+  std::FILE* f = ov::fopen_utf8(codes_path, "rb");
   if (!f) {
     std::fprintf(stderr, "cannot open %s\n", codes_path.c_str());
     return 2;

@@ -12,6 +12,11 @@ endif()
 option(OV_ENABLE_OPENMP "Parallelise the GEMM over row blocks" ON)
 option(OV_ENABLE_CUDA   "Build the CUDA backend (see src/backend/cuda/README.md)" OFF)
 
+if(MSVC)
+  # MSVC does not define M_PI from <cmath> unless asked.
+  add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 # ---------------------------------------------------------------- core library
 add_library(ovcore STATIC
   src/core/weight_file.cpp
@@ -30,7 +35,18 @@ target_include_directories(ovcore PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_compile_options(ovcore PRIVATE -Wall -Wextra -Wno-unused-parameter)
+if(MSVC)
+  target_compile_options(ovcore PRIVATE /W3 /utf-8)
+  # The AVX2 kernels are compiled with /arch:AVX2, so no runtime dispatch is
+  # needed on Windows. AVX-VNNI is disabled on MSVC (see gemm.cpp), and the CPU
+  # path falls back to the AVX2/legacy int8 GEMM.
+  set_source_files_properties(
+    src/backend/cpu/gemm.cpp
+    src/backend/cpu/ops_cpu.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:AVX2")
+else()
+  target_compile_options(ovcore PRIVATE -Wall -Wextra -Wno-unused-parameter)
+endif()
 
 if(OV_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX QUIET)
@@ -56,6 +72,9 @@ target_link_libraries(ovdecode PRIVATE ovcore)
 
 add_executable(ovtts tools/ovtts.cpp)
 target_link_libraries(ovtts PRIVATE ovcore)
+if(WIN32)
+  target_link_libraries(ovtts PRIVATE shell32)  # CommandLineToArgvW
+endif()
 
 # ----------------------------------------------------------------------- tests
 enable_testing()

@@ -1,0 +1,19 @@
+name: windows-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (MSVC x64, CPU)
+        run: cmake -S cpp -B cpp/build -G "Visual Studio 17 2022" -A x64
+      - name: Build
+        run: cmake --build cpp/build --config Release --parallel
+      - name: Test
+        run: ctest --test-dir cpp/build -C Release --output-on-failure

@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "core/utf8.h"
+
 namespace ov {
 
 inline bool write_wav_mono16(const std::string& path, const float* pcm, size_t n,
                              int sample_rate = 24000) {
-  std::FILE* f = std::fopen(path.c_str(), "wb");
+  std::FILE* f = fopen_utf8(path, "wb");
   if (!f) return false;
   const uint32_t data_bytes = static_cast<uint32_t>(n * 2);
   auto w32 = [&](uint32_t v) { std::fwrite(&v, 4, 1, f); };

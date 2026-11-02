@@ -1,5 +1,7 @@
 #include "model/audio_io.h"
 
+#include "core/utf8.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -117,7 +119,7 @@ int detect_leading_silence_ms(const std::vector<int16_t>& x, int sr, float thres
 }  // namespace
 
 std::vector<float> read_wav_mono(const std::string& path, int target_rate) {
-  std::FILE* f = std::fopen(path.c_str(), "rb");
+  std::FILE* f = fopen_utf8(path, "rb");
   if (!f) throw std::runtime_error("cannot open wav: " + path);
   std::fseek(f, 0, SEEK_END);
   const long size = std::ftell(f);

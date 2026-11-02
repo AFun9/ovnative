@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#if defined(__x86_64__) || defined(__i386__)
+#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
 #include <immintrin.h>
 #define OV_X86 1
 #endif
@@ -23,7 +23,17 @@ namespace {
 inline float silu(float x) { return x / (1.f + std::exp(-x)); }
 
 #ifdef OV_X86
+#ifdef _MSC_VER
+#define OV_AVX2
+#else
 #define OV_AVX2 __attribute__((target("avx2,fma")))
+#endif
+
+#ifdef _MSC_VER
+inline bool cpu_has_avx2() { return true; }  // compiled with /arch:AVX2
+#else
+inline bool cpu_has_avx2() { return __builtin_cpu_supports("avx2"); }
+#endif
 
 OV_AVX2 void rmsnorm_avx2(float* dst, const float* src, const float* w, int64_t rows, int64_t cols,
                           float eps) {
@@ -802,7 +812,7 @@ void rmsnorm_f32(float* x, const float* w, int64_t rows, int64_t cols, float eps
 void rmsnorm_into_f32(float* dst, const float* src, const float* w, int64_t rows, int64_t cols,
                       float eps) {
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) { rmsnorm_avx2(dst, src, w, rows, cols, eps); return; }
+  if (cpu_has_avx2()) { rmsnorm_avx2(dst, src, w, rows, cols, eps); return; }
 #endif
   for (int64_t r = 0; r < rows; ++r) {
     const float* row = src + r * cols;
@@ -816,14 +826,14 @@ void rmsnorm_into_f32(float* dst, const float* src, const float* w, int64_t rows
 
 void add_inplace_f32(float* dst, const float* src, int64_t n) {
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) { add_inplace_avx2(dst, src, n); return; }
+  if (cpu_has_avx2()) { add_inplace_avx2(dst, src, n); return; }
 #endif
   for (int64_t i = 0; i < n; ++i) dst[i] += src[i];
 }
 
 void silu_mul_f32(float* out, const float* gate, const float* up, int64_t n) {
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) { silu_mul_avx2(out, gate, up, n); return; }
+  if (cpu_has_avx2()) { silu_mul_avx2(out, gate, up, n); return; }
 #endif
   for (int64_t i = 0; i < n; ++i) out[i] = silu(gate[i]) * up[i];
 }
@@ -873,7 +883,7 @@ void rope_f32(float* x, int64_t rows, int n_heads, int head_dim, const int64_t* 
   }
 
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2") && half % 8 == 0) {
+  if (cpu_has_avx2() && half % 8 == 0) {
     rope_rot_avx2(x, cos_tab.data(), sin_tab.data(), rows, n_heads, head_dim);
     return;
   }
@@ -898,7 +908,7 @@ void attention_head_f32(const float* q, int64_t q_stride, const float* k, const 
                         int64_t kv_stride, const float* bias, int S, int D, float scale,
                         float* out, int64_t out_stride) {
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) {
+  if (cpu_has_avx2()) {
     attention_head_avx2(q, q_stride, k, v, kv_stride, bias, S, D, scale, out, out_stride);
     return;
   }
@@ -975,7 +985,7 @@ void qk_norm_rope_f32(float* q, float* k, const float* qw, const float* kw, int6
     }
   }
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2") && half % 8 == 0) {
+  if (cpu_has_avx2() && half % 8 == 0) {
     qk_norm_rope_avx2(q, k, qw, kw, rows, n_heads, n_kv_heads, head_dim, cos_tab.data(),
                       sin_tab.data(), eps);
     return;
@@ -1129,7 +1139,7 @@ void silu_mul_quantize_f32(int64_t M, int64_t K, const float* gate, const float*
                            uint8_t* aq, float* asc) {
   if (M <= 0 || K <= 0) return;
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) {
+  if (cpu_has_avx2()) {
     silu_mul_quant_avx2(M, K, gate, up, aq, asc);
     return;
   }
@@ -1159,7 +1169,7 @@ void silu_mul_quantize_f32(int64_t M, int64_t K, const float* gate, const float*
 
 void softmax_bias_f32(float* scores, const float* bias, int64_t rows, int64_t cols) {
 #ifdef OV_X86
-  if (__builtin_cpu_supports("avx2")) { softmax_avx2(scores, bias, rows, cols); return; }
+  if (cpu_has_avx2()) { softmax_avx2(scores, bias, rows, cols); return; }
 #endif
   for (int64_t r = 0; r < rows; ++r) {
     float* row = scores + r * cols;
