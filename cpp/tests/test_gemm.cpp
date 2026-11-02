@@ -178,6 +178,10 @@ bool test_s8_nk_pool(int64_t M, int64_t N, int64_t K, std::mt19937& rng) {
 
 // Fused silu(gate)*up + quantise must byte-match silu_mul_f32 then s8_nk_quantize.
 bool test_silu_quant_fused(int64_t M, int64_t K, std::mt19937& rng) {
+  if (!ov::cpu_vnni_available()) {
+    std::printf("  %-34s SKIP (no AVX-VNNI)\n", "silu+quant");
+    return true;
+  }
   std::vector<float> gate(M * K), up(M * K), act(M * K);
   fill(gate, rng);
   fill(up, rng);
@@ -323,6 +327,10 @@ bool test_s8_nk_add(int64_t M, int64_t N, int64_t K, std::mt19937& rng) {
 
 // Fused RMSNorm+quantise must be byte-identical to writing xn and quantising it.
 bool test_norm_quant_fused(int64_t M, int64_t K, std::mt19937& rng) {
+  if (!ov::cpu_vnni_available()) {
+    std::printf("  %-34s SKIP (no AVX-VNNI)\n", "rmsnorm+quant");
+    return true;
+  }
   std::vector<float> x(M * K), w(K), xn(M * K);
   fill(x, rng);
   std::uniform_real_distribution<float> wd(0.1f, 1.1f);
