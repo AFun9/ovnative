@@ -376,8 +376,12 @@ std::vector<float> Pipeline::decode_codes(const std::vector<int64_t>& codes, int
 std::vector<float> Pipeline::synthesize(const std::string& text, const TtsOptions& opt) {
   const Prompt p = build_prompt(text, opt);
   const std::vector<int64_t> codes = run_sampling(p, opt);
-
-  return decode_codes(codes, p.target_len);
+  std::vector<float> audio = decode_codes(codes, p.target_len);
+  if (opt.trim_silence) {
+    trim_output_silence(audio, sample_rate(), opt.trim_lead_ms, opt.trim_trail_ms,
+                        opt.max_internal_silence_ms, opt.keep_internal_silence_ms);
+  }
+  return audio;
 }
 
 }  // namespace ov

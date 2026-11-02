@@ -4,6 +4,7 @@
 //         [--lang English] [--instruct "male, british accent"]
 //         [--ref-audio ref.wav --ref-text "transcript"]
 //         [--steps 32] [--cfg 2.0] [--seed 1234] [--codes codes.i64]
+//         [--no-trim-silence] [--max-pause-ms N] [--keep-pause-ms N]
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -12,6 +13,7 @@
 #include <vector>
 
 #include "core/wav.h"
+#include "model/audio_io.h"
 #ifdef OV_ENABLE_CUDA
 #include <memory>
 #include "backend/cuda/cuda_lm.h"
@@ -28,7 +30,8 @@ int main(int argc, char** argv) {
                  "             [--lang NAME] [--instruct STR] [--steps N] [--cfg F]\n"
                  "             [--ref-audio WAV] [--ref-text TEXT]\n"
                  "             [--backend cpu|cuda]\n"
-                 "             [--seed N] [--codes path]\n");
+                 "             [--seed N] [--codes path]\n"
+                 "             [--no-trim-silence] [--max-pause-ms N] [--keep-pause-ms N]\n");
     return 2;
   }
 
@@ -58,6 +61,9 @@ int main(int argc, char** argv) {
     else if (!std::strcmp(argv[i], "--ref-text")) opt.ref_text = need("--ref-text");
     else if (!std::strcmp(argv[i], "--codes")) codes_out = need("--codes");
     else if (!std::strcmp(argv[i], "--backend")) backend = need("--backend");
+    else if (!std::strcmp(argv[i], "--no-trim-silence")) opt.trim_silence = false;
+    else if (!std::strcmp(argv[i], "--max-pause-ms")) opt.max_internal_silence_ms = std::atoi(need("--max-pause-ms").c_str());
+    else if (!std::strcmp(argv[i], "--keep-pause-ms")) opt.keep_internal_silence_ms = std::atoi(need("--keep-pause-ms").c_str());
     else {
       std::fprintf(stderr, "unknown option %s\n", argv[i]);
       return 2;
@@ -130,6 +136,10 @@ int main(int argc, char** argv) {
     //  expose the decoder through a small helper.)
     std::vector<float> wav = pipe.decode_codes(codes, frames);
     audio.swap(wav);
+    if (opt.trim_silence) {
+      ov::trim_output_silence(audio, 24000, opt.trim_lead_ms, opt.trim_trail_ms,
+                              opt.max_internal_silence_ms, opt.keep_internal_silence_ms);
+    }
     const auto t3 = std::chrono::steady_clock::now();
 
     if (!codes_out.empty()) {

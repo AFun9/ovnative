@@ -139,6 +139,14 @@ Outputs go to `output/weights/`. **Do not commit weights to git.** See
   --ref-text "希望你以后过的比我还好哟！" --backend cuda
 ```
 
+> Output silence is cleaned by default: 60 ms of lead and 80 ms of trail are
+> kept, and interior pauses longer than 300 ms are shortened to ~180 ms. This
+> prevents the duration estimate from padding short sentences with long leading
+> or trailing silence, and prevents a single sentence from sounding like two
+> separate utterances. Use `--no-trim-silence` for the raw output, or
+> `--max-pause-ms` / `--keep-pause-ms` to tune it. This only affects the final
+> WAV, never the codes or model computation.
+
 ## Tests
 
 ```bash

@@ -264,4 +264,61 @@ void remove_silence(std::vector<float>& wav, int sr, int mid_sil, int lead_sil, 
   for (size_t i = 0; i < x.size(); ++i) wav[i] = static_cast<float>(x[i]) / 32768.f;
 }
 
+void trim_output_silence(std::vector<float>& wav, int sample_rate, int lead_ms, int trail_ms,
+                         int max_internal_ms, int keep_internal_ms) {
+  if (wav.empty()) return;
+  const int spms = sample_rate / 1000;
+  std::vector<int16_t> x(wav.size());
+  for (size_t i = 0; i < wav.size(); ++i) x[i] = to_i16(wav[i]);
+
+  // 1) Shorten over-long interior pauses, e.g. a comma pause that the model
+  // stretches into a sentence break. Keep half of the target pause at each side.
+  if (max_internal_ms > 0 && keep_internal_ms >= 0) {
+    const auto silent = detect_silent_ranges(x, sample_rate, max_internal_ms, kSilenceDb, 10);
+    if (!silent.empty()) {
+      std::vector<int16_t> out;
+      out.reserve(x.size());
+      size_t prev = 0;
+      for (const auto& s : silent) {
+        const size_t b = static_cast<size_t>(s.first) * spms;
+        const size_t e = std::min(x.size(), static_cast<size_t>(s.second) * spms);
+        if (b <= prev || e <= b) continue;
+        const size_t len = e - b;
+        const size_t keep = std::min<size_t>(len, static_cast<size_t>(keep_internal_ms) * spms);
+        const size_t keep_l = keep / 2, keep_r = keep - keep_l;
+        // Do not touch the edges here; the next step trims them.
+        const size_t cut_b = b + keep_l;
+        const size_t cut_e = e - keep_r;
+        if (cut_e <= cut_b) continue;
+        out.insert(out.end(), x.begin() + static_cast<long>(prev), x.begin() + static_cast<long>(cut_b));
+        out.insert(out.end(), x.begin() + static_cast<long>(cut_e), x.begin() + static_cast<long>(e));
+        prev = e;
+      }
+      if (!out.empty()) {
+        out.insert(out.end(), x.begin() + static_cast<long>(prev), x.end());
+        x.swap(out);
+      }
+    }
+  }
+
+  // 2) Trim the edges, keeping a short natural lead/trail.
+  int start_ms = detect_leading_silence_ms(x, sample_rate, kSilenceDb, 10);
+  start_ms = std::max(0, start_ms - std::max(0, lead_ms));
+  if (start_ms > 0) {
+    const size_t cut = std::min<size_t>(x.size(), static_cast<size_t>(start_ms) * spms);
+    x.erase(x.begin(), x.begin() + static_cast<long>(cut));
+  }
+  std::vector<int16_t> rev(x.rbegin(), x.rend());
+  int end_ms = detect_leading_silence_ms(rev, sample_rate, kSilenceDb, 10);
+  end_ms = std::max(0, end_ms - std::max(0, trail_ms));
+  if (end_ms > 0) {
+    const size_t cut = std::min<size_t>(rev.size(), static_cast<size_t>(end_ms) * spms);
+    rev.erase(rev.begin(), rev.begin() + static_cast<long>(cut));
+  }
+  x.assign(rev.rbegin(), rev.rend());
+
+  wav.resize(x.size());
+  for (size_t i = 0; i < x.size(); ++i) wav[i] = static_cast<float>(x[i]) / 32768.f;
+}
+
 }  // namespace ov

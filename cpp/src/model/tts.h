@@ -34,6 +34,13 @@ struct TtsOptions {
   std::string ref_audio;  // voice-clone reference wav (24 kHz mono); empty = auto voice
   std::string ref_text;   // transcript of ref_audio
   uint32_t seed = 1234;
+  // Generated audio often carries padding silence from the duration estimate.
+  // Trim it at the output layer only; codes and model behavior are unchanged.
+  bool trim_silence = true;
+  int trim_lead_ms = 60;
+  int trim_trail_ms = 80;
+  int max_internal_silence_ms = 300;
+  int keep_internal_silence_ms = 180;
 };
 
 class Pipeline {

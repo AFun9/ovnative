@@ -130,6 +130,11 @@ python tools/convert_tokenizer.py \
   --ref-text "希望你以后过的比我还好哟！" --backend cuda
 ```
 
+> 输出默认整理静音：开头保留 60 ms、结尾保留 80 ms；超过 300 ms 的内部停顿
+> 压到约 180 ms，避免短句被时长估计“撑”出一大段前后静音或把一句话听成两段。
+> 需要原始输出时加 `--no-trim-silence`；也可用 `--max-pause-ms` /
+> `--keep-pause-ms` 调整。静音整理只作用于最终 WAV，不改变 codes 和模型计算。
+
 ## 测试
 
 ```bash

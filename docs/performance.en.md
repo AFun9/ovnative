@@ -136,6 +136,10 @@ OMP_NUM_THREADS=32 ./cpp/build/ovtts \
   --backend cuda --steps 32
 ```
 
+Generated WAVs are trimmed at the output layer by default (60 ms lead, 80 ms
+trail, interior pauses > 300 ms shortened to 180 ms); use `--no-trim-silence`
+to measure raw model output.
+
 Useful environment switches: `OV_CUDA_PROFILE=1` (per-stage timing),
 `OV_ENC_PROFILE=1` (encoder stages), `OV_ATTN_FUSED=1`,
 `OV_ATTN_BATCHED=1`, `OV_CUDA_FP16=0`, `OV_CUDA_TF32=0`.

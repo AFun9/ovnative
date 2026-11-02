@@ -26,4 +26,13 @@ void normalize_ref_rms(std::vector<float>& wav);
 void remove_silence(std::vector<float>& wav, int sample_rate, int mid_sil = 200,
                     int lead_sil = 100, int trail_sil = 200);
 
+// Post-generation cleanup. Keeps `lead_ms` of leading silence and `trail_ms` of
+// trailing silence; interior silent ranges longer than `max_internal_ms` are
+// shortened to `keep_internal_ms` (0 disables the interior pass). The model's
+// duration estimate intentionally pads short sentences, so raw output often has
+// 0.3-0.7 s of edge silence and an over-long pause at punctuation.
+void trim_output_silence(std::vector<float>& wav, int sample_rate, int lead_ms = 60,
+                         int trail_ms = 80, int max_internal_ms = 300,
+                         int keep_internal_ms = 180);
+
 }  // namespace ov
