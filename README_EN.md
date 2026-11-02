@@ -194,6 +194,9 @@ reference upload for voice cloning. The API is `POST /api/tts`
 [web/README.md](web/README.md). The server binds to `127.0.0.1` by default and
 has no authentication — do not expose it to the public internet.
 
+![OVNative local web UI (real generated result)](docs/web-ui.png)
+
+
 ## Documentation
 
 - [docs/architecture.en.md](docs/architecture.en.md) — engine architecture and kernels

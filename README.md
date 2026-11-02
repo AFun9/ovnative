@@ -180,6 +180,9 @@ voice clone。API 是 `POST /api/tts`（form-urlencoded，返回 WAV）和
 `POST /api/ref`（raw WAV），详见 [web/README.md](web/README.md)。
 服务默认只绑定 `127.0.0.1`，没有鉴权，不要直接暴露到公网。
 
+![OVNative 本地 Web UI（实际生成结果）](docs/web-ui.png)
+
+
 ## 文档
 
 - [README_EN.md](README_EN.md) — English README
